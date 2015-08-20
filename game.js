@@ -26,6 +26,8 @@ var asteroid;
 var bullet;
 var bullets;
 
+var text;
+
 var explosionEmitter;
 
 // load images and resources
@@ -248,11 +250,26 @@ function update() {
             gameover();
         }
         
-        } else {
+    	} else {
         	console.log("pads are null");
         	console.log("pad1 " + pad1 == null);
         	console.log("pad2: " + pad2 == null);
         }
+    } else {
+    	if(game.input.keyboard.isDown(Phaser.Keyboard.R)) {
+    		winner = "";
+    		text.text = " ";
+    		playerA.reset(650, 300);
+    		playerB.reset(150, 300);
+		    playerA.rotation = Math.PI/2;
+	        playerB.rotation = 3*Math.PI/2;
+	        hpa = 100;
+	        hpb = 100;
+			asteroids.create(game.world.centerX, game.height/4*1, 'asteroid');
+		    asteroids.create(game.world.centerX, game.height/4*2, 'asteroid');
+		    asteroids.create(game.world.centerX, game.height/4*3, 'asteroid');
+    		
+    	}
     }
 
 }
@@ -335,12 +352,16 @@ function gameover(){
     txta.setText("");
     txtb.setText("");
 
-    playerA.destroy();
-    playerB.destroy();
-    bullets.destroy();
-    asteroids.destroy();
+    playerA.kill();
+    playerB.kill();
+    bullets.forEach(kill, this);
+    asteroids.forEach(kill, this);
 
-    var text = game.add.text(game.world.centerX-125, game.world.centerY, winner, { font: "60px Arial", fill: "#ff0044", align: "center" });
+    text = game.add.text(game.world.centerX-125, game.world.centerY, winner, { font: "60px Arial", fill: "#ff0044", align: "center" });
+}
+
+function kill(x) {
+	x.kill();	
 }
 
 function render() {
