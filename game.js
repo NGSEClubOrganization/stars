@@ -4,6 +4,8 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, cr
 
 var cursors;
 
+var padType = "xboxOne";
+
 var pad1;
 var pad2;
 
@@ -15,10 +17,12 @@ var playerA;
     var ta  = 0;
     var hpa = 100;
     var txta;
+    var pada;
 var playerB;
     var tb  = 0;
     var hpb = 100;
     var txtb;
+    var padb;
 
 var asteroids;
 var asteroid;
@@ -29,6 +33,8 @@ var bullets;
 var text;
 
 var explosionEmitter;
+
+
 
 // load images and resources
 function preload() {
@@ -125,6 +131,8 @@ function create() {
     txta = game.add.text(game.width-100,    50, "", { font: "30px Arial", fill: "#ff0044", align: "center" });
     txtb = game.add.text(100,               50, "", { font: "30px Arial", fill: "#ff0044", align: "center" });
 	
+
+	//-------------------------------------------------------------------------------------------------------------------------------
 	game.input.onDown.add(goFull, this);
 }
 
@@ -165,7 +173,7 @@ function update() {
         
 		console.log(pad1.axis(1));
 
-        if (pad1.isDown(8))        
+        if (padCode(10, pad1))        
         {
             game.physics.arcade.accelerationFromRotation(playerA.rotation, 200, playerA.body.acceleration);
         }
@@ -174,22 +182,22 @@ function update() {
             playerA.body.acceleration.set(0);
         }
 
-        if (pad1.axis(0)<0)
+        if (padCode(0, pad1)<0)
         {
             playerA.body.angularVelocity = -300;
         }
         
-        if (pad1.axis(0)>0)
+        if (padCode(0, pad1)>0)
         {
             playerA.body.angularVelocity = 300;
         }
         
-        if(pad1.axis(0) == 0)
+        if(padCode(0, pad1) == 0)
         {
             playerA.body.angularVelocity = 0;
         }
 
-        if (pad1.isDown(11))
+        if (padCode(9, pad1))
         {
             ta = fireBullet(playerA, ta);
         }
@@ -200,7 +208,7 @@ function update() {
 
         
         //B
-        if (pad2.isDown(8))        
+        if (padCode(10, pad2))        
         {
             game.physics.arcade.accelerationFromRotation(playerB.rotation, 200, playerB.body.acceleration);
         }
@@ -209,22 +217,22 @@ function update() {
             playerB.body.acceleration.set(0);
         }
 
-        if (pad2.axis(0)<0)
+        if (padCode(0, pad2)<0)
         {
             playerB.body.angularVelocity = -300;
         }
         
-        if (pad2.axis(0)>0)
+        if (padCode(0, pad2)>0)
         {
             playerB.body.angularVelocity = 300;
         }
         
-        if(pad2.axis(0) == 0)
+        if(padCode(0, pad2) == 0)
         {
             playerB.body.angularVelocity = 0;
         }
 
-        if (pad2.isDown(11))
+        if (padCode(9, pad2))
         {
             tb = fireBullet(playerB, tb);
         }
@@ -363,6 +371,85 @@ function gameover(){
 function kill(x) {
 	x.kill();	
 }
+
+function padCode(num, p)
+{
+
+    var TRIG_SENSITIVITY = 0.5;
+    var type = padType;
+    var ds2DpadMean = 
+    [3.2,
+    -1, 0, 0.7, -0.4
+    ];
+    var ds2DPadBound = 0.1;
+    /*
+    [
+        ls x(0), ls y(1),
+        rs x(2), rs y(3),
+
+        btn: down(4), right(5), left(6), up(7),
+
+        left bump(8), right bump(9),
+        left trig(10), right trig(11),
+
+        left mid(12), right mid(13),
+
+        btn: ls(14), rs(15),
+
+        dpad: up(16), down(17), left(18), right(19)
+
+        (-1, or 1)//depending on controller# (20)
+    ]
+
+    #must add 90 or -90, depending on controller, since y axis is flipped
+
+    */
+
+    var xboxOne = 
+    [
+        p.axis(0), p.axis(1),
+        p.axis(2), p.axis(3),
+        p.isDown(0), p.isDown(1), p.isDown(2), p.isDown(3), 
+        
+        p.isDown(4), p.isDown(5),
+        p.isDown(6), p.isDown(7), 
+        
+        p.isDown(8), p.isDown(9),
+        
+        p.isDown(10), p.isDown(11),
+        
+        p.isDown(12), p.isDown(13), p.isDown(14), p.isDown(15),
+        -1
+    ];
+    var dualShock2 = 
+    [
+        p.axis(0), p.axis(1), p.axis(5), p.axis(2), p.isDown(2), p.isDown(1), p.isDown(3), p.isDown(0),
+        p.isDown(6), p.isDown(7), p.isDown(4), p.isDown(5), 
+        p.isDown(8), p.isDown(9),
+        p.isDown(10), p.isDown(11),
+        p.axis(9) < ds2DpadMean[1] + ds2DPadBound && p.axis(9) > ds2DpadMean[1] - ds2DPadBound,
+        p.axis(9) < ds2DpadMean[2] + ds2DPadBound && p.axis(9) > ds2DpadMean[2] - ds2DPadBound,
+        p.axis(9) < ds2DpadMean[3] + ds2DPadBound && p.axis(9) > ds2DpadMean[3] - ds2DPadBound,
+        p.axis(9) < ds2DpadMean[4] + ds2DPadBound && p.axis(9) > ds2DpadMean[4] - ds2DPadBound,
+        -1
+    ];
+
+    if(type === 'xboxOne')
+    {
+        return xboxOne[num];
+    }
+    if(type === 'dualShock2')
+    {
+        return dualShock2[num];
+    }
+    if(type === 'dualShock4')
+    {
+        //Not implemented yet
+        console.log('Not implemented yet');
+    }
+
+}
+
 
 function render() {
 
